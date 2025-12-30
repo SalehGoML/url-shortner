@@ -27,4 +27,5 @@ func main() {
 		log.Fatal("Migration failed:", err)
 	}
 	fmt.Println("Tables migrated successfully")
+
 }
