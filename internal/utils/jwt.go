@@ -23,3 +23,19 @@ func GenerateJWT(userID uint, secret string) (string, error) {
 
 	return token.SignedString([]byte(secret))
 }
+
+func ValidateJWT(tokenstr, secret string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenstr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, err
+	}
+
+	return claims, nil
+}
