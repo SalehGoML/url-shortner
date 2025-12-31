@@ -18,8 +18,8 @@ func NewURLHandler(urlService service.URLService) *URLHandler {
 }
 
 func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
-	//userID := r.Context().Value(middleware.UserIDKey).(uint)
-	userID := uint(1)
+	userID := r.Context().Value(middleware.UserIDKey).(uint)
+	//userID := uint(1)
 	var req struct {
 		LongURL string     `json:"long_url"`
 		Expiry  *time.Time `json:"expiry,omitempty"`

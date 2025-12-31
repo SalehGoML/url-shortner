@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"github.com/SalehGoML/internal/models"
 	"gorm.io/gorm"
 )
@@ -20,7 +22,7 @@ func (r *urlRepository) Create(url *models.URL) error {
 func (r *urlRepository) GetByShortCode(code string) (*models.URL, error) {
 	var url models.URL
 	err := r.db.
-		Where("short_code = ? AND is_active = ?", code, true).
+		Where("LOWER(short_code) = ? AND is_active = ?", strings.ToLower(code), true).
 		First(&url).Error
 	if err != nil {
 		return nil, err
@@ -31,7 +33,7 @@ func (r *urlRepository) GetByShortCode(code string) (*models.URL, error) {
 func (r *urlRepository) ListByUser(userID uint) ([]*models.URL, error) {
 	var urls []*models.URL
 	err := r.db.
-		Where("user_id = ?", userID).
+		Where("user_id = ? And is_active = true", userID).
 		Order("created_at desc").
 		Find(&urls).Error
 	return urls, err

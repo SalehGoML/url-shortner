@@ -31,34 +31,27 @@ func (s *urlService) Shorten(
 	expiry *time.Time,
 ) (*models.URL, error) {
 
-	var shortCode string
-	//
-	//for {
-	//	shortCode = utils.GenerateShortCode(6)
-	//
-	//	_, err := s.urlRepo.GetByShortCode(shortCode)
-	//	if err != nil {
-	//		break
-	//	}
-	//}
+	existingURLs, err := s.urlRepo.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, u := range existingURLs {
+		if u.LongURL == longURL && u.IsActive {
+			return u, nil
+		}
+	}
 	//fmt.Println("Shorten handler called")
 	//
-	//existingURLs, _ := s.urlRepo.ListByUser(userID)
-	//for _, u := range existingURLs {
-	//	if u.LongURL == longURL && u.IsActive {
-	//		return &u, nil
-	//	}
-	//}
 
+	var shortCode string
 	for {
 		shortCode = utils.GenerateShortCode(6)
 		_, err := s.urlRepo.GetByShortCode(shortCode)
-
 		if err != nil {
 			break
 		}
 	}
-
 	url := &models.URL{
 		LongURL:   longURL,
 		ShortCode: shortCode,
@@ -67,10 +60,9 @@ func (s *urlService) Shorten(
 		IsActive:  true,
 	}
 
-	//err := s.urlRepo.Create(url)
-	//if err != nil {
-	//	return nil, err
-	//}
+	if err := s.urlRepo.Create(url); err != nil {
+		return nil, err
+	}
 
 	return url, nil
 }
