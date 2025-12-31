@@ -37,10 +37,13 @@ func main() {
 	fmt.Println("Tables migrated successfully")
 
 	userRepo := repository.NewUserRepository(db)
+	urlRepo := repository.NewURLRepository(db)
 
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+	urlService := service.NewURLService(urlRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
+	urlHandler := handlers.NewURLHandler(urlService)
 
 	mux := http.NewServeMux()
 
@@ -56,6 +59,26 @@ func main() {
 			}),
 		),
 	)
+
+	//mux.HandleFunc("/shorten", urlHandler.Shorten)
+
+	mux.Handle(
+		"/shorten",
+		middleware.AuthMiddleware(
+			cfg.JWTSecret,
+			http.HandlerFunc(urlHandler.Shorten),
+		),
+	)
+
+	mux.Handle(
+		"/my/urls",
+		middleware.AuthMiddleware(
+			cfg.JWTSecret,
+			http.HandlerFunc(urlHandler.ListMyURLs),
+		),
+	)
+
+	mux.HandleFunc("/", urlHandler.Redirect)
 
 	log.Println("server running on port", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, mux))

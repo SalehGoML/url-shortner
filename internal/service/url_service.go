@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/SalehGoML/internal/models"
@@ -13,6 +14,7 @@ type URLService interface {
 	Shorten(longURL string, userID uint, expiry *time.Time) (*models.URL, error)
 	GetByCode(code string) (*models.URL, error)
 	IncrementClicks(urlID uint) error
+	ListByUser(userID uint) ([]models.URL, error)
 }
 
 type urlService struct {
@@ -38,6 +40,7 @@ func (s *urlService) Shorten(
 			break
 		}
 	}
+	fmt.Println("Shorten handler called")
 
 	url := &models.URL{
 		LongURL:   longURL,
@@ -70,4 +73,8 @@ func (s *urlService) GetByCode(code string) (*models.URL, error) {
 
 func (s *urlService) IncrementClicks(urlID uint) error {
 	return s.urlRepo.IncrementClicks(urlID)
+}
+
+func (s *urlService) ListByUser(userID uint) ([]models.URL, error) {
+	return s.urlRepo.ListByUser(userID)
 }

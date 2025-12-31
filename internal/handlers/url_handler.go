@@ -18,8 +18,8 @@ func NewURLHandler(urlService service.URLService) *URLHandler {
 }
 
 func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(middleware.UserIDKey).(uint)
-
+	//userID := r.Context().Value(middleware.UserIDKey).(uint)
+	userID := uint(1)
 	var req struct {
 		LongURL string     `json:"long_url"`
 		Expiry  *time.Time `json:"expiry,omitempty"`
@@ -54,4 +54,17 @@ func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 	_ = h.urlService.IncrementClicks(url.ID)
 
 	http.Redirect(w, r, url.LongURL, http.StatusFound)
+}
+
+func (h *URLHandler) ListMyURLs(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(uint)
+
+	urls, err := h.urlService.ListByUser(userID)
+	if err != nil {
+		http.Error(w, "failed to list urls", http.StatusInternalServerError)
+
+		return
+	}
+
+	json.NewEncoder(w).Encode(urls)
 }
