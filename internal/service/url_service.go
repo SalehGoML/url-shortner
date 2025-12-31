@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/SalehGoML/internal/models"
@@ -31,17 +30,34 @@ func (s *urlService) Shorten(
 	userID uint,
 	expiry *time.Time,
 ) (*models.URL, error) {
+
 	var shortCode string
+	//
+	//for {
+	//	shortCode = utils.GenerateShortCode(6)
+	//
+	//	_, err := s.urlRepo.GetByShortCode(shortCode)
+	//	if err != nil {
+	//		break
+	//	}
+	//}
+	//fmt.Println("Shorten handler called")
+	//
+	//existingURLs, _ := s.urlRepo.ListByUser(userID)
+	//for _, u := range existingURLs {
+	//	if u.LongURL == longURL && u.IsActive {
+	//		return &u, nil
+	//	}
+	//}
 
 	for {
 		shortCode = utils.GenerateShortCode(6)
-
 		_, err := s.urlRepo.GetByShortCode(shortCode)
+
 		if err != nil {
 			break
 		}
 	}
-	fmt.Println("Shorten handler called")
 
 	url := &models.URL{
 		LongURL:   longURL,
@@ -51,10 +67,10 @@ func (s *urlService) Shorten(
 		IsActive:  true,
 	}
 
-	err := s.urlRepo.Create(url)
-	if err != nil {
-		return nil, err
-	}
+	//err := s.urlRepo.Create(url)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return url, nil
 }

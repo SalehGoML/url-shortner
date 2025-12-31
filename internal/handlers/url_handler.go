@@ -38,7 +38,10 @@ func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(url)
+	//json.NewEncoder(w).Encode(url)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(url)
 }
 
 func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
@@ -66,34 +69,11 @@ func (h *URLHandler) ListMyURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(urls)
+	//json.NewEncoder(w).Encode(urls)
+	endcoder := json.NewEncoder(w)
+	endcoder.SetIndent("", "  ")
+	endcoder.Encode(urls)
 }
-
-//func (h *URLHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
-//	idStr := r.URL.Query().Get("id")
-//	if idStr == "" {
-//		http.Error(w, "missing id", http.StatusBadRequest)
-//
-//		return
-//	}
-//
-//	urlID, err := strconv.Atoi(idStr)
-//	if err != nil {
-//		http.Error(w, "invalid id", http.StatusBadRequest)
-//
-//		return
-//	}
-//
-//	err = h.urlService.Deactivate(uint(urlID))
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//
-//		return
-//	}
-//
-//	w.WriteHeader(http.StatusOK)
-//	w.Write([]byte("lind deactivated"))
-//}
 
 func (h *URLHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIDKey).(uint)
