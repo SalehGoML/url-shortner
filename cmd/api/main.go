@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/SalehGoML/config"
 	"github.com/SalehGoML/internal/handlers"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/SalehGoML/internal/models"
 
+	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -45,49 +47,28 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	urlHandler := handlers.NewURLHandler(urlService)
 
-	mux := http.NewServeMux()
+	router := mux.NewRouter()
 
-	mux.HandleFunc("/register", authHandler.Register)
-	mux.HandleFunc("/login", authHandler.Login)
+	router.HandleFunc("/register", authHandler.Register).Methods("POST")
+	router.HandleFunc("/login", authHandler.Login).Methods("POST")
 
-	mux.Handle(
-		"/dashboard",
-		middleware.AuthMiddleware(
-			cfg.JWTSecret,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("welcome"))
-			}),
-		),
-	)
+	router.Handle("/shorten", middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(urlHandler.Shorten))).Methods("POST")
+	router.Handle("/my/urls", middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(urlHandler.ListMyURLs))).Methods("GET")
+	router.Handle("/url/deactivate", middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(urlHandler.Deactivate))).Methods("POST")
 
-	//mux.HandleFunc("/shorten", urlHandler.Shorten)
+	router.Handle("/dashboard", middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("welcome"))
+	})))
 
-	mux.Handle(
-		"/shorten",
-		middleware.AuthMiddleware(
-			cfg.JWTSecret,
-			http.HandlerFunc(urlHandler.Shorten),
-		),
-	)
+	router.HandleFunc("/{code}", urlHandler.Redirect).Methods("GET")
 
-	mux.Handle(
-		"/my/urls",
-		middleware.AuthMiddleware(
-			cfg.JWTSecret,
-			http.HandlerFunc(urlHandler.ListMyURLs),
-		),
-	)
+	srv := &http.Server{
+		Handler:      router,
+		Addr:         ":" + cfg.Port,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
 
-	mux.Handle(
-		"/url/deactivate",
-		middleware.AuthMiddleware(
-			cfg.JWTSecret,
-			http.HandlerFunc(urlHandler.Deactivate),
-		),
-	)
-
-	mux.HandleFunc("/", urlHandler.Redirect)
-
-	log.Println("server running on port", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, mux))
+	log.Println("Server running on port", cfg.Port)
+	log.Fatal(srv.ListenAndServe())
 }
