@@ -78,6 +78,11 @@ func main() {
 		),
 	)
 
+	mux.Handle(
+		"/url/deactivate",
+		middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(urlHandler.Deactivate)),
+	)
+
 	mux.HandleFunc("/", urlHandler.Redirect)
 
 	log.Println("server running on port", cfg.Port)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/SalehGoML/internal/middleware"
@@ -67,4 +68,30 @@ func (h *URLHandler) ListMyURLs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(urls)
+}
+
+func (h *URLHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "missing id", http.StatusBadRequest)
+
+		return
+	}
+
+	urlID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+
+		return
+	}
+
+	err = h.urlService.Deactivate(uint(urlID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("lind deactivated"))
 }

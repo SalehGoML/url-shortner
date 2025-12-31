@@ -14,7 +14,8 @@ type URLService interface {
 	Shorten(longURL string, userID uint, expiry *time.Time) (*models.URL, error)
 	GetByCode(code string) (*models.URL, error)
 	IncrementClicks(urlID uint) error
-	ListByUser(userID uint) ([]models.URL, error)
+	ListByUser(userID uint) ([]*models.URL, error)
+	Deactivate(urlID uint) error
 }
 
 type urlService struct {
@@ -75,6 +76,10 @@ func (s *urlService) IncrementClicks(urlID uint) error {
 	return s.urlRepo.IncrementClicks(urlID)
 }
 
-func (s *urlService) ListByUser(userID uint) ([]models.URL, error) {
+func (s *urlService) ListByUser(userID uint) ([]*models.URL, error) {
 	return s.urlRepo.ListByUser(userID)
+}
+
+func (s *urlService) Deactivate(urlID uint) error {
+	return s.urlRepo.Deactivate(urlID)
 }
