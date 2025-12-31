@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/SalehGoML/internal/middleware"
@@ -70,28 +69,75 @@ func (h *URLHandler) ListMyURLs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(urls)
 }
 
+//func (h *URLHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
+//	idStr := r.URL.Query().Get("id")
+//	if idStr == "" {
+//		http.Error(w, "missing id", http.StatusBadRequest)
+//
+//		return
+//	}
+//
+//	urlID, err := strconv.Atoi(idStr)
+//	if err != nil {
+//		http.Error(w, "invalid id", http.StatusBadRequest)
+//
+//		return
+//	}
+//
+//	err = h.urlService.Deactivate(uint(urlID))
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//
+//		return
+//	}
+//
+//	w.WriteHeader(http.StatusOK)
+//	w.Write([]byte("lind deactivated"))
+//}
+
 func (h *URLHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-	if idStr == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+	userID := r.Context().Value(middleware.UserIDKey).(uint)
+
+	var req struct {
+		URLID uint `json:"url_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
 
 		return
 	}
 
-	urlID, err := strconv.Atoi(idStr)
+	urls, err := h.urlService.ListByUser(userID)
 	if err != nil {
-		http.Error(w, "invalid id", http.StatusBadRequest)
+		http.Error(w, "failed to list urls", http.StatusInternalServerError)
 
 		return
 	}
 
-	err = h.urlService.Deactivate(uint(urlID))
+	authorized := false
+	for _, url := range urls {
+		if url.ID == req.URLID {
+			authorized = true
+
+			break
+		}
+	}
+	if !authorized {
+		http.Error(w, "not authorized to deactivate this URL", http.StatusForbidden)
+
+		return
+	}
+
+	err = h.urlService.Deactivate(req.URLID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to deactivate URL", http.StatusInternalServerError)
 
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("lind deactivated"))
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "URL successfully deactivated successfully",
+	})
 }

@@ -28,8 +28,8 @@ func (r *urlRepository) GetByShortCode(code string) (*models.URL, error) {
 	return &url, nil
 }
 
-func (r *urlRepository) ListByUser(userID uint) ([]models.URL, error) {
-	var urls []models.URL
+func (r *urlRepository) ListByUser(userID uint) ([]*models.URL, error) {
+	var urls []*models.URL
 	err := r.db.
 		Where("user_id = ?", userID).
 		Order("created_at desc").

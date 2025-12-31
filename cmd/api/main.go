@@ -80,7 +80,10 @@ func main() {
 
 	mux.Handle(
 		"/url/deactivate",
-		middleware.AuthMiddleware(cfg.JWTSecret, http.HandlerFunc(urlHandler.Deactivate)),
+		middleware.AuthMiddleware(
+			cfg.JWTSecret,
+			http.HandlerFunc(urlHandler.Deactivate),
+		),
 	)
 
 	mux.HandleFunc("/", urlHandler.Redirect)
