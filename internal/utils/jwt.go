@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"github.com/golang-jwt/jwt/v5"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Claims struct {
@@ -25,17 +26,21 @@ func GenerateJWT(userID uint, secret string) (string, error) {
 }
 
 func ValidateJWT(tokenstr, secret string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenstr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenstr, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
-	})
+	},
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*Claims)
-	if !ok || !token.Valid {
-		return nil, err
+	if !token.Valid {
+		return nil, jwt.ErrTokenInvalidClaims
 	}
 
 	return claims, nil
+
 }
